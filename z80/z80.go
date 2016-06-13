@@ -68,3 +68,51 @@ func (z *Z80) setAF(bc uint16) {
 	z.F = bytes[0]
 	z.A = bytes[1]
 }
+
+func (z Z80) getZFlag() bool {
+	return z.F & Z_FLAG != 0
+}
+
+func (z Z80) getNFlag() bool {
+	return z.F & N_FLAG != 0
+}
+
+func (z Z80) getHFlag() bool {
+	return z.F & H_FLAG != 0
+}
+
+func (z Z80) getCFlag() bool {
+	return z.F & C_FLAG != 0
+}
+
+func (z *Z80) setZFlag(f bool) {
+	if f {
+		z.F |= Z_FLAG
+	} else {
+		z.F &= ^Z_FLAG
+	}
+}
+
+func (z *Z80) setNFlag(f bool) {
+	if f {
+		z.F |= N_FLAG
+	} else {
+		z.F &= ^N_FLAG
+	}
+}
+
+func (z *Z80) setHFlag(f bool) {
+	if f {
+		z.F |= H_FLAG
+	} else {
+		z.F &= ^H_FLAG
+	}
+}
+
+func (z *Z80) setCFlag(f bool) {
+	if f {
+		z.F |= C_FLAG
+	} else {
+		z.F &= ^C_FLAG
+	}
+}

@@ -121,3 +121,99 @@ func TestSetAF(t *testing.T) {
 		t.Errorf("F = %02x", z.F)
 	}
 }
+
+func TestGetZFlag(t *testing.T) {
+	z := New()
+	z.F = 0x80
+	if !z.getZFlag() {
+		t.Error("Z flag is false.")
+	}
+	z.F = 0
+	if z.getZFlag() {
+		t.Error("Z flag is true.")
+	}
+}
+
+func TestGetNFlag(t *testing.T) {
+	z := New()
+	z.F = 0x40
+	if !z.getNFlag() {
+		t.Error("N flag is false.")
+	}
+	z.F = 0
+	if z.getNFlag() {
+		t.Error("N flag is true.")
+	}
+}
+
+func TestGetHFlag(t *testing.T) {
+	z := New()
+	z.F = 0x20
+	if !z.getHFlag() {
+		t.Error("H flag is false.")
+	}
+	z.F = 0
+	if z.getHFlag() {
+		t.Error("H flag is true.")
+	}
+}
+
+func TestGetCFlag(t *testing.T) {
+	z := New()
+	z.F = 0x10
+	if !z.getCFlag() {
+		t.Error("C flag is false.")
+	}
+	z.F = 0
+	if z.getCFlag() {
+		t.Error("C flag is true.")
+	}
+}
+
+func TestSetZFlag(t *testing.T) {
+	z := New()
+	z.setZFlag(true)
+	if z.F != 0x80 {
+		t.Error("Failed to set Z flag.")
+	}
+	z.setZFlag(false)
+	if z.F != 0 {
+		t.Error("Failed to clear Z flag.")
+	}
+}
+
+func TestSetNFlag(t *testing.T) {
+	z := New()
+	z.setNFlag(true)
+	if z.F != 0x40 {
+		t.Error("Failed to set N flag.")
+	}
+	z.setNFlag(false)
+	if z.F != 0 {
+		t.Error("Failed to clear N flag.")
+	}
+}
+
+func TestSetHFlag(t *testing.T) {
+	z := New()
+	z.setHFlag(true)
+	if z.F != 0x20 {
+		t.Error("Failed to set H flag.")
+	}
+	z.setHFlag(false)
+	if z.F != 0 {
+		t.Error("Failed to clear H flag.")
+	}
+}
+
+func TestSetCFlag(t *testing.T) {
+	z := New()
+	z.setCFlag(true)
+	if z.F != 0x10 {
+		t.Error("Failed to set C flag.")
+	}
+	z.setCFlag(false)
+	if z.F != 0 {
+		t.Error("Failed to clear C flag.")
+	}
+}
