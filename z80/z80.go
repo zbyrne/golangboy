@@ -11,14 +11,24 @@ const (
 	C_FLAG byte = 1 << 4
 )
 
+type Memory interface {
+	ReadByte(uint16) byte
+	WriteByte(uint16, byte)
+	ReadWord(uint16) uint16
+	WriteWord(uint16, uint16)
+}
+
 type Z80 struct {
 	A, F, B, C, D, E, H, L byte
 
 	PC, SP uint16
+	mem Memory
 }
 
-func New() Z80 {
-	return Z80{}
+type ClockTicks int
+
+func New(m Memory) Z80 {
+	return Z80{mem: m}
 }
 
 func (z Z80) getBC() uint16 {
