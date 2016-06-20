@@ -244,3 +244,219 @@ func TestSetCFlag(t *testing.T) {
 		t.Error("Failed to clear C flag.")
 	}
 }
+
+func TestDispatchNOP(t *testing.T) {
+	z := New(newMockMemory(1))
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling NOP used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+}
+
+func TestDispatchLD_BC_nn(t *testing.T) {
+	z := New(newMockMemory(3))
+	z.mem.(*mockMemory).buff[0] = 0x1
+	z.mem.(*mockMemory).buff[1] = 0xAA
+	z.mem.(*mockMemory).buff[2] = 0x55
+	tick := z.Dispatch()
+	if tick != 12 {
+		t.Errorf("Calling LD BC nn used %d cycles, not 12", tick)
+	}
+	if z.PC != 3 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0003", z.PC)
+	}
+	if z.getBC() != 0x55AA {
+		t.Errorf("BC set to 0x%04X, not 0x55AA", z.getBC())
+	}
+}
+
+func TestDispatchLD_ind_BC_A(t *testing.T) {
+	z := New(newMockMemory(3))
+	z.mem.(*mockMemory).buff[0] = 0x2
+	z.A = 0xA5
+	z.setBC(1)
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling LD (BC) A used %d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+
+	if z.mem.ReadByte(1) != 0xA5 {
+		t.Errorf("Loaded 0x%02X, not 0xA5", z.mem.ReadByte(1))
+	}
+}
+
+func TestDispatchINC_BC(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x3
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling INC BC used %d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.getBC() != 0x0001 {
+		t.Errorf("BC set to 0x%04X, not 0x0001", z.getBC())
+	}
+}
+
+func TestDispatchINC_BCOverflow(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x3
+	z.setBC(0xFFFF)
+	z.Dispatch()
+	if z.getBC() != 0x0000 {
+		t.Errorf("BC set to 0x%04X, not 0x0000", z.getBC())
+	}
+}
+
+func TestDispatchINC_B(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x4
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling INC B used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.B != 0x01 {
+		t.Errorf("B set to 0x%02X, not 0x01", z.B)
+	}
+	if z.getNFlag() {
+		t.Error("N Flag is set after addition.")
+	}
+}
+
+func TestDispatchINC_BOverflow(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x4
+	z.B = 0xFF
+	z.Dispatch()
+	if z.B != 0x00 {
+		t.Errorf("B set to 0x%02X, not 0x00", z.B)
+	}
+	if !z.getZFlag() {
+		t.Error("Z Flag not set after overflow.")
+	}
+}
+
+func TestDispatchINC_BHalfCarry(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x4
+	z.B = 0x0F
+	z.Dispatch()
+	if z.B != 0x10 {
+		t.Errorf("B set to 0x%02X, not 0x10", z.B)
+	}
+	if !z.getHFlag() {
+		t.Error("H Flag not set after half-carry.")
+	}
+}
+
+func TestDispatchDEC_B(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x5
+	z.B = 0x2
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling DEC B used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.B != 0x01 {
+		t.Errorf("B set to 0x%02X, not 0x01", z.B)
+	}
+	if !z.getNFlag() {
+		t.Error("N Flag not set after subtraction.")
+	}
+}
+
+func TestDispatchDEC_BOverflow(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x5
+	z.Dispatch()
+	if z.B != 0xFF {
+		t.Errorf("B set to 0x%02X, not 0xFF", z.B)
+	}
+}
+
+func TestDispatchDEC_BHalfCarry(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x5
+	z.B = 0x0F
+	z.Dispatch()
+	if z.B != 0xE {
+		t.Errorf("B set to 0x%02X, not 0xE", z.B)
+	}
+	if !z.getHFlag() {
+		t.Error("H Flag not set after half-carry.")
+	}
+}
+
+func TestDispatchLD_B_n(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0x6
+	z.mem.(*mockMemory).buff[1] = 0xA5
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling LD B n used %d cycles, not 8", tick)
+	}
+	if z.PC != 2 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0002", z.PC)
+	}
+	if z.B != 0xA5 {
+		t.Errorf("B set to 0x%02X, not 0xA5", z.B)
+	}
+}
+
+func TestDispatchRLC_A(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x7
+	z.A = 0x01
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling RLC A used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.A != 0x02 {
+		t.Errorf("A set to 0x%02X, not 0x02", z.A)
+	}
+}
+
+func TestDispatchRLC_AOverflow(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x7
+	z.A = 0x80
+	z.Dispatch()
+	if z.A != 0x01 {
+		t.Errorf("A set to 0x%02X, not 0x01", z.A)
+	}
+}
+
+func TestDispatchLD_ind_nn_SP(t *testing.T) {
+	z := New(newMockMemory(5))
+	z.mem.(*mockMemory).buff[0] = 0x8
+	z.mem.(*mockMemory).buff[1] = 0x3
+	z.mem.(*mockMemory).buff[2] = 0x0
+	z.SP = 0xAA55
+	tick := z.Dispatch()
+	if tick != 20 {
+		t.Errorf("Calling LD (nn) SP used &d cycles, not 20", tick)
+	}
+	if z.PC != 3 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0003", z.PC)
+	}
+	if z.mem.ReadWord(0x3) != 0xAA55 {
+		t.Errorf("Loaded 0x%04X, not 0xAA55", z.mem.ReadWord(0x3))
+	}
+}
