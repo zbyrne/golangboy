@@ -197,6 +197,13 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 20
 	case 0x09:
 		// ADD HL BC
+		hl := z.getHL()
+		bc := z.getBC()
+		z.setCFlag(hl > 0xFFFF - bc)
+		z.setNFlag(false)
+		z.setHFlag(hl&0xFFF + bc&0xFFF >= 0x1000)
+		z.setHL(hl + bc)
+		return 8
 	case 0x0A:
 		// LD A (BC)
 	case 0x0B:

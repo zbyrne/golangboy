@@ -460,3 +460,50 @@ func TestDispatchLD_ind_nn_SP(t *testing.T) {
 		t.Errorf("Loaded 0x%04X, not 0xAA55", z.mem.ReadWord(0x3))
 	}
 }
+
+func TestDispatchADD_HL_BC(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x9
+	z.setBC(0x0A05)
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling ADD HL BC used %d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.getHL() != 0x0A05 {
+		t.Errorf("B set to 0x%04X, not 0x0A05", z.getHL())
+	}
+	if z.getNFlag() {
+		t.Error("N Flag set after addition.")
+	}
+}
+
+func TestDispatchADD_HL_BCCarry(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x9
+	z.setBC(0xFFFF)
+	z.setHL(0x1)
+	z.Dispatch()
+	if z.getHL() != 0 {
+		t.Errorf("HL set to 0x%04X, not 0x0000", z.getHL())
+	}
+	if !z.getCFlag() {
+		t.Error("C Flag not set after overflow.")
+	}
+}
+
+func TestDispatchADD_HL_BCHalfCarry(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x9
+	z.setBC(0x0FFF)
+	z.setHL(0x1)
+	z.Dispatch()
+	if z.getHL() != 0x1000 {
+		t.Errorf("HL set to 0x%04X, not 0x1000", z.getHL())
+	}
+	if !z.getHFlag() {
+		t.Error("H Flag not set after half-carry.")
+	}
+}
