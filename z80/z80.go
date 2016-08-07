@@ -289,6 +289,19 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.PC++
 		return 4
 	case 0x17:
+		// RL A
+		var carry uint8 = 0
+		val := z.A << 1
+		if z.getCFlag() {
+			carry = 1
+		}
+		val |= carry
+		z.setCFlag(z.A & 0x80 != 0)
+		z.setNFlag(false)
+		z.setHFlag(false)
+		z.setZFlag(val == 0)
+		z.A = val
+		return 4
 	case 0x18:
 	case 0x1F:
 	case 0x20:
