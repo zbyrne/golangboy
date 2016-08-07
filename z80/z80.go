@@ -244,6 +244,10 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.A = val
 		return 4
 	case 0x10:
+		// STOP
+		// TODO: fill this in once there's more system around.
+		z.PC++
+		return 4
 	case 0x11:
 	case 0x12:
 	case 0x13:
