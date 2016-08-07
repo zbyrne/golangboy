@@ -249,6 +249,10 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.PC++
 		return 4
 	case 0x11:
+		// LD DE nn
+		z.setDE(z.mem.ReadWord(z.PC))
+		z.PC += 2
+		return 12
 	case 0x12:
 	case 0x13:
 	case 0x14:
