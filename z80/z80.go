@@ -235,6 +235,14 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 8
 	case 0x0F:
 		// RRC A
+		val := z.A >> 1
+		val |= (z.A & 1) << 7
+		z.setCFlag(z.A & 1 != 0)
+		z.setNFlag(false)
+		z.setHFlag(false)
+		z.setZFlag(val == 0)
+		z.A = val
+		return 4
 	case 0x10:
 	case 0x11:
 	case 0x12:

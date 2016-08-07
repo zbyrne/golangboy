@@ -603,3 +603,29 @@ func TestDispatchLD_C_n(t *testing.T) {
 		t.Errorf("C set to 0x%02X, not 0xA5", z.C)
 	}
 }
+
+func TestDispatchRRC_A(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0xF
+	z.A = 0x02
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling RRC A used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.A != 0x01 {
+		t.Errorf("A set to 0x%02X, not 0x01", z.A)
+	}
+}
+
+func TestDispatchRRC_AOverflow(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0xF
+	z.A = 0x01
+	z.Dispatch()
+	if z.A != 0x80 {
+		t.Errorf("A set to 0x%02X, not 0x80", z.A)
+	}
+}
