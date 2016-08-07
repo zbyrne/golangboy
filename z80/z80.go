@@ -254,6 +254,9 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.PC += 2
 		return 12
 	case 0x12:
+		// LD (DE) A
+		z.mem.WriteByte(z.getDE(), z.A)
+		return 8
 	case 0x13:
 	case 0x14:
 	case 0x15:

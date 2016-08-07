@@ -646,3 +646,21 @@ func TestDispatchLD_DE_nn(t *testing.T) {
 		t.Errorf("DE set to 0x%04X, not 0x55AA", z.getDE())
 	}
 }
+
+func TestDispatchLD_ind_DE_A(t *testing.T) {
+	z := New(newMockMemory(3))
+	z.mem.(*mockMemory).buff[0] = 0x12
+	z.A = 0xA5
+	z.setDE(1)
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling LD (DE) A used %d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+
+	if z.mem.ReadByte(1) != 0xA5 {
+		t.Errorf("Loaded 0x%02X, not 0xA5", z.mem.ReadByte(1))
+	}
+}
