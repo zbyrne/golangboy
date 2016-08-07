@@ -154,8 +154,31 @@ func (z *Z80) decReg8(reg *byte) {
 	*reg = res
 }
 
+func (z *Z80) incDecLdRegDecode(op byte) *byte {
+	if op < 0x08 {
+		return &z.B
+	}
+	if op < 0x10 {
+		return &z.C
+	}
+	if op < 0x18 {
+		return &z.D
+	}
+	if op < 0x20 {
+		return &z.E
+	}
+	if op < 0x28 {
+		return &z.H
+	}
+	if op < 0x30 {
+		return &z.L
+	}
+	return nil
+}
+
 func (z *Z80) Dispatch() ClockTicks {
 	var op byte
+	var reg *byte
 	op = z.mem.ReadByte(z.PC)
 	z.PC++
 	switch op {
@@ -175,17 +198,20 @@ func (z *Z80) Dispatch() ClockTicks {
 		// INC BC
 		z.setBC(z.getBC() + 1)
 		return 8
-	case 0x04:
-		// INC B
-		z.incReg8(&z.B)
+	case 0x04, 0x0C:
+		// INC R8
+		reg = z.incDecLdRegDecode(op)
+		z.incReg8(reg)
 		return 4
-	case 0x05:
-		// DEC B
-		z.decReg8(&z.B)
+	case 0x05, 0x0D:
+		// DEC R8
+		reg = z.incDecLdRegDecode(op)
+		z.decReg8(reg)
 		return 4
-	case 0x06:
-		// LD B n
-		z.B = z.mem.ReadByte(z.PC)
+	case 0x06, 0x0E:
+		// LD R8 n
+		reg = z.incDecLdRegDecode(op)
+		*reg = z.mem.ReadByte(z.PC)
 		z.PC++
 		return 8
 	case 0x07:
@@ -219,19 +245,6 @@ func (z *Z80) Dispatch() ClockTicks {
 	case 0x0B:
 		// DEC BC
 		z.setBC(z.getBC() - 1)
-		return 8
-	case 0x0C:
-		// INC C
-		z.incReg8(&z.C)
-		return 4
-	case 0x0D:
-		// DEC C
-		z.decReg8(&z.C)
-		return 4
-	case 0x0E:
-		// LD C n
-		z.C = z.mem.ReadByte(z.PC)
-		z.PC++
 		return 8
 	case 0x0F:
 		// RRC A
