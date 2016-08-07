@@ -218,6 +218,8 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 8
 	case 0x0C:
 		// INC C
+		z.incReg8(&z.C)
+		return 4
 	case 0x0D:
 		// DEC C
 	case 0x0E:
