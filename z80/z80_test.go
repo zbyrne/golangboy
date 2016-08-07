@@ -507,3 +507,20 @@ func TestDispatchADD_HL_BCHalfCarry(t *testing.T) {
 		t.Error("H Flag not set after half-carry.")
 	}
 }
+
+func TestDispatchLD_A_BC_ind(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0xA
+	z.mem.(*mockMemory).buff[1] = 0xFF
+	z.setBC(0x1)
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling LD A (BC) used &d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.A != 0xFF {
+		t.Errorf("Loaded 0x%04X, not 0xFF", z.A)
+	}
+}

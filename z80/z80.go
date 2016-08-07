@@ -206,6 +206,8 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 8
 	case 0x0A:
 		// LD A (BC)
+		z.A = z.mem.ReadByte(z.getBC())
+		return 8
 	case 0x0B:
 		// DEC BC
 	case 0x0C:
