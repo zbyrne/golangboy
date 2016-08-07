@@ -210,6 +210,8 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 8
 	case 0x0B:
 		// DEC BC
+		z.setBC(z.getBC() - 1)
+		return 8
 	case 0x0C:
 		// INC C
 	case 0x0D:

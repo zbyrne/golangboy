@@ -524,3 +524,29 @@ func TestDispatchLD_A_BC_ind(t *testing.T) {
 		t.Errorf("Loaded 0x%04X, not 0xFF", z.A)
 	}
 }
+
+func TestDispatchDEC_BC(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0xB
+	z.setBC(0xFFFF)
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling DEC BC used %d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.getBC() != 0xFFFE {
+		t.Errorf("BC set to 0x%04X, not 0xFFFE", z.getBC())
+	}
+}
+
+func TestDispatchDEC_BCOverflow(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0xB
+	z.setBC(0x0)
+	z.Dispatch()
+	if z.getBC() != 0xFFFF {
+		t.Errorf("BC set to 0x%04X, not 0xFFFF", z.getBC())
+	}
+}
