@@ -138,22 +138,6 @@ func (z Z80) pop() uint16 {
 	return word
 }
 
-func (z *Z80) incReg8(reg *byte) {
-	res := *reg + 1
-	z.setZFlag(res == 0)
-	z.setNFlag(false)
-	z.setHFlag(((*reg & 0xF) + 1) >= 0x10)
-	*reg = res
-}
-
-func (z *Z80) decReg8(reg *byte) {
-	res := *reg - 1
-	z.setZFlag(res == 0)
-	z.setNFlag(true)
-	z.setHFlag(((*reg & 0xF) + 0xF) >= 0x10)
-	*reg = res
-}
-
 func (z *Z80) incDecLdRegDecode(op byte) *byte {
 	if op < 0x08 {
 		return &z.B
@@ -225,12 +209,20 @@ func (z *Z80) Dispatch() ClockTicks {
 	case 0x04, 0x0C, 0x14, 0x1C, 0x24, 0x2C, 0x3C:
 		// INC R8
 		reg = z.incDecLdRegDecode(op)
-		z.incReg8(reg)
+		res := *reg + 1
+		z.setZFlag(res == 0)
+		z.setNFlag(false)
+		z.setHFlag(((*reg & 0xF) + 1) >= 0x10)
+		*reg = res
 		return 4
 	case 0x05, 0x0D, 0x15, 0x1D, 0x25, 0x2D, 0x3D:
 		// DEC R8
 		reg = z.incDecLdRegDecode(op)
-		z.decReg8(reg)
+		res := *reg - 1
+		z.setZFlag(res == 0)
+		z.setNFlag(true)
+		z.setHFlag(((*reg & 0xF) + 0xF) >= 0x10)
+		*reg = res
 		return 4
 	case 0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x3E:
 		// LD R8 n
