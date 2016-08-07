@@ -568,3 +568,22 @@ func TestDispatchINC_C(t *testing.T) {
 		t.Error("N Flag is set after addition.")
 	}
 }
+
+func TestDispatchDEC_C(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0xD
+	z.C = 0x2
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling DEC C used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.C != 0x01 {
+		t.Errorf("C set to 0x%02X, not 0x01", z.C)
+	}
+	if !z.getNFlag() {
+		t.Error("N Flag not set after subtraction.")
+	}
+}
