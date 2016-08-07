@@ -587,3 +587,19 @@ func TestDispatchDEC_C(t *testing.T) {
 		t.Error("N Flag not set after subtraction.")
 	}
 }
+
+func TestDispatchLD_C_n(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0xE
+	z.mem.(*mockMemory).buff[1] = 0xA5
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling LD C n used %d cycles, not 8", tick)
+	}
+	if z.PC != 2 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0002", z.PC)
+	}
+	if z.C != 0xA5 {
+		t.Errorf("C set to 0x%02X, not 0xA5", z.C)
+	}
+}
