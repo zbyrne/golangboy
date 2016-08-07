@@ -146,6 +146,14 @@ func (z *Z80) incReg8(reg *byte) {
 	*reg = res
 }
 
+func (z *Z80) decReg8(reg *byte) {
+	res := *reg - 1
+	z.setZFlag(res == 0)
+	z.setNFlag(true)
+	z.setHFlag(((*reg & 0xF) + 0xF) >= 0x10)
+	*reg = res
+}
+
 func (z *Z80) Dispatch() ClockTicks {
 	var op byte
 	op = z.mem.ReadByte(z.PC)
@@ -173,11 +181,7 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 4
 	case 0x05:
 		// DEC B
-		res := z.B - 1
-		z.setZFlag(res == 0)
-		z.setNFlag(true)
-		z.setHFlag(((z.B & 0xF) + 0xF) >= 0x10)
-		z.B = res
+		z.decReg8(&z.B)
 		return 4
 	case 0x06:
 		// LD B n
