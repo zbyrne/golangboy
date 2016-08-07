@@ -179,27 +179,48 @@ func (z *Z80) incDecLdRegDecode(op byte) *byte {
 	return nil
 }
 
+func (z *Z80) r16GetSetDecode(op byte) (func() uint16, func(uint16)) {
+	if op < 0x10 {
+		return func() uint16 {return z.getBC()}, func(x uint16) {z.setBC(x)}
+	}
+	if op < 0x20 {
+		return func() uint16 {return z.getDE()}, func(x uint16) {z.setDE(x)}
+	}
+	if op < 0x30 {
+		return func() uint16 {return z.getHL()}, func(x uint16) {z.setHL(x)}
+	}
+	if op < 0x40 {
+		return func() uint16 {return z.SP}, func(x uint16) {z.SP = x}
+	}
+	return nil, nil
+}
+
 func (z *Z80) Dispatch() ClockTicks {
 	var op byte
 	var reg *byte
+	var getReg16 func() uint16
+	var setReg16 func(uint16)
 	op = z.mem.ReadByte(z.PC)
 	z.PC++
 	switch op {
 	case 0x00:
 		// NOP
 		return 4
-	case 0x01:
-		// LD BC nn
-		z.setBC(z.mem.ReadWord(z.PC))
+	case 0x01, 0x11, 0x21, 0x31:
+		// LD R16 nn
+		_, setReg16 = z.r16GetSetDecode(op)
+		setReg16(z.mem.ReadWord(z.PC))
 		z.PC += 2
 		return 12
-	case 0x02:
-		// LD (BC) A
-		z.mem.WriteByte(z.getBC(), z.A)
+	case 0x02, 0x12, 0x22, 0x32:
+		// LD (R16) A
+		getReg16, _ = z.r16GetSetDecode(op)
+		z.mem.WriteByte(getReg16(), z.A)
 		return 8
-	case 0x03:
-		// INC BC
-		z.setBC(z.getBC() + 1)
+	case 0x03, 0x13, 0x23, 0x33:
+		// INC R16
+		getReg16, setReg16 = z.r16GetSetDecode(op)
+		setReg16(getReg16() + 1)
 		return 8
 	case 0x04, 0x0C, 0x14, 0x1C, 0x24, 0x2C, 0x3C:
 		// INC R8
@@ -232,22 +253,25 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.mem.WriteWord(z.mem.ReadWord(z.PC), z.SP)
 		z.PC += 2
 		return 20
-	case 0x09:
-		// ADD HL BC
+	case 0x09, 0x19, 0x29, 0x39:
+		// ADD HL R16
+		getReg16, _ = z.r16GetSetDecode(op)
 		hl := z.getHL()
-		bc := z.getBC()
-		z.setCFlag(hl > 0xFFFF - bc)
+		r16 := getReg16()
+		z.setCFlag(hl > 0xFFFF - r16)
 		z.setNFlag(false)
-		z.setHFlag(hl&0xFFF + bc&0xFFF >= 0x1000)
-		z.setHL(hl + bc)
+		z.setHFlag(hl&0xFFF + r16&0xFFF >= 0x1000)
+		z.setHL(hl + r16)
 		return 8
-	case 0x0A:
-		// LD A (BC)
-		z.A = z.mem.ReadByte(z.getBC())
+	case 0x0A, 0x1A, 0x2A, 0x3A:
+		// LD A (R16)
+		getReg16, _ = z.r16GetSetDecode(op)
+		z.A = z.mem.ReadByte(getReg16())
 		return 8
-	case 0x0B:
-		// DEC BC
-		z.setBC(z.getBC() - 1)
+	case 0x0B, 0x1B, 0x2B, 0x3B:
+		// DEC R16
+		getReg16, setReg16 = z.r16GetSetDecode(op)
+		setReg16(getReg16() - 1)
 		return 8
 	case 0x0F:
 		// RRC A
@@ -264,59 +288,19 @@ func (z *Z80) Dispatch() ClockTicks {
 		// TODO: fill this in once there's more system around.
 		z.PC++
 		return 4
-	case 0x11:
-		// LD DE nn
-		z.setDE(z.mem.ReadWord(z.PC))
-		z.PC += 2
-		return 12
-	case 0x12:
-		// LD (DE) A
-		z.mem.WriteByte(z.getDE(), z.A)
-		return 8
-	case 0x13:
-	case 0x14:
-	case 0x15:
-	case 0x16:
 	case 0x17:
 	case 0x18:
-	case 0x19:
-	case 0x1A:
-	case 0x1B:
-	case 0x1C:
-	case 0x1D:
-	case 0x1E:
 	case 0x1F:
 	case 0x20:
-	case 0x21:
-	case 0x22:
-	case 0x23:
-	case 0x24:
-	case 0x25:
-	case 0x26:
 	case 0x27:
 	case 0x28:
-	case 0x29:
-	case 0x2A:
-	case 0x2B:
-	case 0x2C:
-	case 0x2D:
-	case 0x2E:
 	case 0x2F:
 	case 0x30:
-	case 0x31:
-	case 0x32:
-	case 0x33:
 	case 0x34:
 	case 0x35:
 	case 0x36:
 	case 0x37:
 	case 0x38:
-	case 0x39:
-	case 0x3A:
-	case 0x3B:
-	case 0x3C:
-	case 0x3D:
-	case 0x3E:
 	case 0x3F:
 	case 0x40:
 	case 0x41:
