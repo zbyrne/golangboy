@@ -173,6 +173,9 @@ func (z *Z80) incDecLdRegDecode(op byte) *byte {
 	if op < 0x30 {
 		return &z.L
 	}
+	if op < 0x40 {
+		return &z.A
+	}
 	return nil
 }
 
@@ -198,17 +201,17 @@ func (z *Z80) Dispatch() ClockTicks {
 		// INC BC
 		z.setBC(z.getBC() + 1)
 		return 8
-	case 0x04, 0x0C:
+	case 0x04, 0x0C, 0x14, 0x1C, 0x24, 0x2C, 0x3C:
 		// INC R8
 		reg = z.incDecLdRegDecode(op)
 		z.incReg8(reg)
 		return 4
-	case 0x05, 0x0D:
+	case 0x05, 0x0D, 0x15, 0x1D, 0x25, 0x2D, 0x3D:
 		// DEC R8
 		reg = z.incDecLdRegDecode(op)
 		z.decReg8(reg)
 		return 4
-	case 0x06, 0x0E:
+	case 0x06, 0x0E, 0x16, 0x1E, 0x26, 0x2E, 0x3E:
 		// LD R8 n
 		reg = z.incDecLdRegDecode(op)
 		*reg = z.mem.ReadByte(z.PC)
