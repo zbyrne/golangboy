@@ -334,30 +334,30 @@ func (z *Z80) Dispatch() ClockTicks {
 		// LD B (HL)
 		z.B = z.mem.ReadByte(z.getHL())
 		return 8
-	case 0x48:
-	case 0x49:
-	case 0x4A:
-	case 0x4B:
-	case 0x4C:
-	case 0x4D:
+	case 0x48, 0x49, 0x4A, 0x4B, 0x4C, 0x4D, 0x4F:
+		// LC C R8
+		z.C = *z.regDecode(op)
+		return 4
 	case 0x4E:
-	case 0x4F:
-	case 0x50:
-	case 0x51:
-	case 0x52:
-	case 0x53:
-	case 0x54:
-	case 0x55:
+		// LD C (HL)
+		z.C = z.mem.ReadByte(z.getHL())
+		return 8
+	case 0x50, 0x51, 0x52, 0x53, 0x54, 0x55, 0x57:
+		// LD D R8
+		z.D = *z.regDecode(op)
+		return 4
 	case 0x56:
-	case 0x57:
-	case 0x58:
-	case 0x59:
-	case 0x5A:
-	case 0x5B:
-	case 0x5C:
-	case 0x5D:
+		// LD D (HL)
+		z.D = z.mem.ReadByte(z.getHL())
+		return 8
+	case 0x58, 0x59, 0x5A, 0x5B, 0x5C, 0x5D, 0x5F:
+		// LC E R8
+		z.E = *z.regDecode(op)
+		return 4
 	case 0x5E:
-	case 0x5F:
+		// LD E (HL)
+		z.E = z.mem.ReadByte(z.getHL())
+		return 8
 	case 0x60:
 	case 0x61:
 	case 0x62:
