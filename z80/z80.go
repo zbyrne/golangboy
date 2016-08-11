@@ -160,6 +160,25 @@ func (z *Z80) regDecode(op byte) *byte {
 	if op < 0x40 {
 		return &z.A
 	}
+	// LD and ALU instructions follow this pattern for input operands
+	switch op & 0x7 {
+	case 0:
+		return &z.B
+	case 1:
+		return &z.C
+	case 2:
+		return &z.D
+	case 3:
+		return &z.E
+	case 4:
+		return &z.H
+	case 5:
+		return &z.L
+	case 6:
+		panic("HL indirect instruction.")
+	case 7:
+		return &z.A
+	}
 	return nil
 }
 
@@ -307,14 +326,14 @@ func (z *Z80) Dispatch() ClockTicks {
 	case 0x37:
 	case 0x38:
 	case 0x3F:
-	case 0x40:
-	case 0x41:
-	case 0x42:
-	case 0x43:
-	case 0x44:
-	case 0x45:
+	case 0x40, 0x41, 0x42, 0x43, 0x44, 0x45, 0x47:
+		// LD B R8
+		z.B = *z.regDecode(op)
+		return 4
 	case 0x46:
-	case 0x47:
+		// LD B (HL)
+		z.B = z.mem.ReadByte(z.getHL())
+		return 8
 	case 0x48:
 	case 0x49:
 	case 0x4A:

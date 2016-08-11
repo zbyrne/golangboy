@@ -691,3 +691,38 @@ func TestDispatchRL_AOverflow(t *testing.T) {
 		t.Errorf("A set to 0x%02X, not 0x03", z.A)
 	}
 }
+
+func TestDispatchLD_B_C(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0x41
+	z.C = 0xA5
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling LD B C used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+
+	if z.B != 0xA5 {
+		t.Errorf("Loaded 0x%02X, not 0xA5", z.B)
+	}
+}
+
+func TestDispatchLD_B_ind_HL(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0x46
+	z.mem.(*mockMemory).buff[1] = 0xA5
+	z.setHL(0x1)
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling LD B (HL) used %d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+
+	if z.B != 0xA5 {
+		t.Errorf("Loaded 0x%02X, not 0xA5", z.B)
+	}
+}
