@@ -237,7 +237,7 @@ func (z *Z80) Dispatch() ClockTicks {
 		setReg16(z.mem.ReadWord(z.PC))
 		z.PC += 2
 		return 12
-	case 0x02, 0x12, 0x22, 0x32:
+	case 0x02, 0x12:
 		// LD (R16) A
 		getReg16, _ = z.r16GetSetDecode(op)
 		z.mem.WriteByte(getReg16(), z.A)
@@ -296,7 +296,7 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.setHFlag(hl&0xFFF + r16&0xFFF >= 0x1000)
 		z.setHL(hl + r16)
 		return 8
-	case 0x0A, 0x1A, 0x2A, 0x3A:
+	case 0x0A, 0x1A:
 		// LD A (R16)
 		getReg16, _ = z.r16GetSetDecode(op)
 		z.A = z.mem.ReadByte(getReg16())
@@ -336,15 +336,29 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.A = val
 		return 4
 	case 0x18:
+		// JR n
 	case 0x1F:
+		// RRA
 	case 0x20:
+		// JR NZ n
 	case 0x27:
+		// DAA
 	case 0x28:
+		// JR Z n
+	case 0x2A:
+		// LD A (HL+)
 	case 0x2F:
+		// CPL
 	case 0x30:
+		// JR NC n
+	case 0x32:
+		// LD (HL-) A
 	case 0x34:
+		// INC (HL)
 	case 0x35:
+		// DEC (HL)
 	case 0x36:
+		// LD (HL) n
 	case 0x37:
 		// SCF
 		z.setCFlag(true)
@@ -352,6 +366,9 @@ func (z *Z80) Dispatch() ClockTicks {
 		z.setHFlag(false)
 		return 4
 	case 0x38:
+		// JR C n
+	case 0x3A:
+		// LD A (HL-)
 	case 0x3F:
 		// CCF
 		z.setCFlag(false)
