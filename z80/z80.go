@@ -343,18 +343,27 @@ func (z *Z80) Dispatch() ClockTicks {
 		// JR NZ n
 	case 0x22:
 		// LD (HL+) A
+		z.mem.WriteByte(z.getHL(), z.A)
+		z.setHL(z.getHL() + 1)
+		return 8
 	case 0x27:
 		// DAA
 	case 0x28:
 		// JR Z n
 	case 0x2A:
 		// LD A (HL+)
+		z.A = z.mem.ReadByte(z.getHL())
+		z.setHL(z.getHL() + 1)
+		return 8
 	case 0x2F:
 		// CPL
 	case 0x30:
 		// JR NC n
 	case 0x32:
 		// LD (HL-) A
+		z.mem.WriteByte(z.getHL(), z.A)
+		z.setHL(z.getHL() - 1)
+		return 8
 	case 0x34:
 		// INC (HL)
 	case 0x35:
@@ -371,6 +380,8 @@ func (z *Z80) Dispatch() ClockTicks {
 		// JR C n
 	case 0x3A:
 		// LD A (HL-)
+		z.A = z.mem.ReadByte(z.getHL())
+		z.setHL(z.getHL() - 1)
 	case 0x3F:
 		// CCF
 		z.setCFlag(false)

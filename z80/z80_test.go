@@ -745,3 +745,25 @@ func TestDispatchLD_ind_HL_A(t *testing.T) {
 		t.Errorf("Loaded 0x%02X, not 0x5A", z.mem.ReadByte(0x1))
 	}
 }
+
+func TestDispatchLD_ind_HL_inc_A(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0x22
+	z.mem.(*mockMemory).buff[1] = 0
+	z.setHL(0x1)
+	z.A = 0x5A
+	tick := z.Dispatch()
+	if tick != 8 {
+		t.Errorf("Calling LD (HL) A used %d cycles, not 8", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+
+	if z.mem.ReadByte(0x1) != 0x5A {
+		t.Errorf("Loaded 0x%02X, not 0x5A", z.mem.ReadByte(0x1))
+	}
+	if z.getHL() != 0x2 {
+		t.Errorf("HL is 0x%04X, not 0x0002", z.getHL())
+	}
+}
