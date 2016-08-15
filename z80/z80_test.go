@@ -767,3 +767,68 @@ func TestDispatchLD_ind_HL_inc_A(t *testing.T) {
 		t.Errorf("HL is 0x%04X, not 0x0002", z.getHL())
 	}
 }
+
+func TestDispatchAdd_A_B(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x80
+	z.A = 0xF0
+	z.B = 0x0F
+	tick := z.Dispatch()
+	if tick != 4 {
+		t.Errorf("Calling ADD A B used %d cycles, not 4", tick)
+	}
+	if z.PC != 1 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0001", z.PC)
+	}
+	if z.A != 0xFF {
+		t.Errorf("A is 0x%02X, not 0xFF", z.A)
+	}
+	if z.getCFlag() {
+		t.Error("C Flag is set without overflow")
+	}
+	if z.getHFlag() {
+		t.Error("H Flag is set without half carry")
+	}
+}
+
+func TestDispatchAdd_A_BOverflow(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x80
+	z.A = 0xF0
+	z.B = 0x11
+	z.Dispatch()
+	if z.A != 0x01 {
+		t.Errorf("A is 0x%02X, not 0x01", z.A)
+	}
+	if !z.getCFlag() {
+		t.Error("C Flag not set after overflow")
+	}
+}
+
+func TestDispatchAdd_A_BHalfCarry(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x80
+	z.A = 0xF
+	z.B = 0xF
+	z.Dispatch()
+	if z.A != 0x1E {
+		t.Errorf("A is 0x%02X, not 0x1E", z.A)
+	}
+	if !z.getHFlag() {
+		t.Error("H Flag not set after half carry")
+	}
+}
+
+func TestDispatchAdd_A_BZero(t *testing.T) {
+	z := New(newMockMemory(1))
+	z.mem.(*mockMemory).buff[0] = 0x80
+	z.A = 0xFF
+	z.B = 0x1
+	z.Dispatch()
+	if z.A != 0x00 {
+		t.Errorf("A is 0x%02X, not 0x00", z.A)
+	}
+	if !z.getZFlag() {
+		t.Error("Z Flag not set after zero")
+	}
+}

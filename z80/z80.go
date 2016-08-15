@@ -408,14 +408,17 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 8
 	case 0x76:
 		// HALT
-	case 0x80:
-	case 0x81:
-	case 0x82:
-	case 0x83:
-	case 0x84:
-	case 0x85:
+	case 0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x87:
+		// ADD A R8
+		reg = z.regDecode(op)
+		z.setZFlag(z.A + *reg == 0)
+		z.setNFlag(false)
+		z.setHFlag((z.A & 0xF) > 0xF - (*reg) & 0xF)
+		z.setCFlag(z.A > 0xFF - *reg)
+		z.A += *reg
+		return 4
 	case 0x86:
-	case 0x87:
+		// ADD A (HL)
 	case 0x88:
 	case 0x89:
 	case 0x8A:
