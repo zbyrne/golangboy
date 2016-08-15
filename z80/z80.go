@@ -341,6 +341,8 @@ func (z *Z80) Dispatch() ClockTicks {
 		// RRA
 	case 0x20:
 		// JR NZ n
+	case 0x22:
+		// LD (HL+) A
 	case 0x27:
 		// DAA
 	case 0x28:
