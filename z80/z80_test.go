@@ -832,3 +832,29 @@ func TestDispatchAdd_A_BZero(t *testing.T) {
 		t.Error("Z Flag not set after zero")
 	}
 }
+
+func TestDispatchJR_n(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0x18
+	z.mem.(*mockMemory).buff[1] = 0xF
+	tick := z.Dispatch()
+	if tick != 12 {
+		t.Errorf("Calling JR n used %d cycles, not 12", tick)
+	}
+	if z.PC != 0x11 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0011", z.PC)
+	}
+}
+
+func TestDispatchJR_n_negativeOffset(t *testing.T) {
+	z := New(newMockMemory(2))
+	z.mem.(*mockMemory).buff[0] = 0x18
+	z.mem.(*mockMemory).buff[1] = 0xFE
+	tick := z.Dispatch()
+	if tick != 12 {
+		t.Errorf("Calling JR n used %d cycles, not 12", tick)
+	}
+	if z.PC != 0 {
+		t.Errorf("Program Counter advanced to 0x%04X, not 0x0000", z.PC)
+	}
+}

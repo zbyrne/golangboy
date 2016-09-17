@@ -27,6 +27,15 @@ type Z80 struct {
 
 type ClockTicks int
 
+func addSignedByteToU16(a uint16, b byte) uint16 {
+	var upper byte
+	if (b & 0x80 == 0x80) {
+		upper = 0xFF
+	}
+	word:= []byte{b, upper}
+	return a + binary.LittleEndian.Uint16(word)
+}
+
 func New(m Memory) Z80 {
 	return Z80{mem: m}
 }
@@ -337,6 +346,10 @@ func (z *Z80) Dispatch() ClockTicks {
 		return 4
 	case 0x18:
 		// JR n
+		offset := z.mem.ReadByte(z.PC)
+		z.PC++
+		z.PC = addSignedByteToU16(z.PC, offset)
+		return 12
 	case 0x1F:
 		// RRA
 	case 0x20:
